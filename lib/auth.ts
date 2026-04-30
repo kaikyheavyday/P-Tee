@@ -19,6 +19,22 @@ export type LineIdTokenPayload = {
 export async function verifyLineIdToken(
   idToken: string
 ): Promise<LineIdTokenPayload | null> {
+  // ── Dev mock bypass ────────────────────────────────────────────────────────
+  if (
+    process.env.NODE_ENV !== "production" &&
+    idToken === "mock_dev_token"
+  ) {
+    return {
+      iss: "https://access.line.me",
+      sub: process.env.LIFF_MOCK_USER_ID ?? "Umock_dev_user",
+      aud: process.env.LINE_LOGIN_CHANNEL_ID ?? "mock_channel",
+      exp: Math.floor(Date.now() / 1000) + 3600,
+      iat: Math.floor(Date.now() / 1000),
+      name: process.env.LIFF_MOCK_DISPLAY_NAME ?? "Dev User",
+    };
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const channelId = process.env.LINE_LOGIN_CHANNEL_ID;
   if (!channelId) throw new Error("LINE_LOGIN_CHANNEL_ID not set");
 

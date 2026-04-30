@@ -48,6 +48,24 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [idToken, setIdToken] = useState<string | null>(null);
 
   useEffect(() => {
+    // ── Dev mock ──────────────────────────────────────────────────────────────
+    if (process.env.NEXT_PUBLIC_LIFF_MOCK === "true") {
+      setIsLoggedIn(true);
+      setIsInClient(false);
+      setOs("web");
+      setLanguage("th");
+      setIdToken("mock_dev_token");
+      setProfile({
+        userId: process.env.NEXT_PUBLIC_LIFF_MOCK_USER_ID ?? "Umock_dev_user",
+        displayName:
+          process.env.NEXT_PUBLIC_LIFF_MOCK_DISPLAY_NAME ?? "Dev User",
+        pictureUrl: process.env.NEXT_PUBLIC_LIFF_MOCK_PICTURE_URL ?? undefined,
+      });
+      setIsReady(true);
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     let cancelled = false;
 
     const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
