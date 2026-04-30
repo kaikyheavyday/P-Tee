@@ -27,8 +27,11 @@ type LiffContextValue = {
   error: string | null;
   os: string | null;
   language: string | null;
+  idToken: string | null;
   login: () => void;
   logout: () => void;
+  /** fetch helper that auto-attaches Authorization: Bearer <idToken>. */
+  apiFetch: (input: string, init?: RequestInit) => Promise<Response>;
 };
 
 const LiffContext = createContext<LiffContextValue | undefined>(undefined);
@@ -42,6 +45,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [os, setOs] = useState<string | null>(null);
   const [language, setLanguage] = useState<string | null>(null);
+  const [idToken, setIdToken] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +75,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
         setIsLoggedIn(loggedIn);
 
         if (loggedIn) {
+          setIdToken(liffSdk.getIDToken());
           const p = await liffSdk.getProfile();
           if (cancelled) return;
           setProfile({
@@ -107,6 +112,19 @@ export function LiffProvider({ children }: { children: ReactNode }) {
     window.location.reload();
   }, [liff]);
 
+  const apiFetch = useCallback(
+    async (input: string, init?: RequestInit) => {
+      const token = liff?.isLoggedIn() ? liff.getIDToken() : idToken;
+      const headers = new Headers(init?.headers);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      if (init?.body && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+      return fetch(input, { ...init, headers });
+    },
+    [liff, idToken]
+  );
+
   const value = useMemo<LiffContextValue>(
     () => ({
       liff,
@@ -117,10 +135,25 @@ export function LiffProvider({ children }: { children: ReactNode }) {
       error,
       os,
       language,
+      idToken,
       login,
       logout,
+      apiFetch,
     }),
-    [liff, isReady, isLoggedIn, isInClient, profile, error, os, language, login, logout]
+    [
+      liff,
+      isReady,
+      isLoggedIn,
+      isInClient,
+      profile,
+      error,
+      os,
+      language,
+      idToken,
+      login,
+      logout,
+      apiFetch,
+    ]
   );
 
   return <LiffContext.Provider value={value}>{children}</LiffContext.Provider>;
