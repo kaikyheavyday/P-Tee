@@ -71,7 +71,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
     const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
     if (!liffId) {
       setError(
-        "Missing NEXT_PUBLIC_LIFF_ID. Add it to .env.local and restart the dev server."
+        "Missing NEXT_PUBLIC_LIFF_ID. Add it to .env.local and restart the dev server.",
       );
       setIsReady(true);
       return;
@@ -81,7 +81,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
       try {
         const mod = await import("@line/liff");
         const liffSdk = mod.default;
-        await liffSdk.init({ liffId });
+        await liffSdk.init({ liffId, withLoginOnExternalBrowser: true });
         if (cancelled) return;
 
         setLiff(liffSdk);
@@ -120,7 +120,18 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const login = useCallback(() => {
     if (!liff) return;
     if (!liff.isLoggedIn()) {
-      liff.login({ redirectUri: window.location.href });
+      const url = new URL(window.location.href);
+      const isOAuthCallback =
+        url.searchParams.has("code") ||
+        url.searchParams.has("state") ||
+        url.searchParams.has("liff.state") ||
+        url.searchParams.has("liffClientId");
+
+      // Prevent restarting login while handling callback params.
+      if (isOAuthCallback) return;
+
+      const cleanRedirectUri = `${url.origin}${url.pathname}`;
+      liff.login({ redirectUri: cleanRedirectUri });
     }
   }, [liff]);
 
@@ -140,7 +151,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
       }
       return fetch(input, { ...init, headers });
     },
-    [liff, idToken]
+    [liff, idToken],
   );
 
   const value = useMemo<LiffContextValue>(
@@ -171,7 +182,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       apiFetch,
-    ]
+    ],
   );
 
   return <LiffContext.Provider value={value}>{children}</LiffContext.Provider>;
