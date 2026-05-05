@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { estimateFromText, hashKey } from "@/lib/openai";
+import { estimateFromText, hashKey } from "@/lib/llm";
 import { rateLimit, cacheGet, cacheSet } from "@/lib/cache";
 
 export const runtime = "nodejs";

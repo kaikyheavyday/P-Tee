@@ -13,7 +13,21 @@ const config: Config = {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-kanit)", "system-ui", "-apple-system", "sans-serif"],
+      },
       colors: {
+        brand: {
+          DEFAULT: "#FFA840",
+          50: "#FFF6EC",
+          100: "#FFE9CB",
+          200: "#FFD497",
+          300: "#FFBE63",
+          400: "#FFA840",
+          500: "#FF8A0D",
+          600: "#E37200",
+          700: "#A85400",
+        },
         line: "#06C755",
         "line-dark": "#05A647",
         border: "hsl(var(--border))",

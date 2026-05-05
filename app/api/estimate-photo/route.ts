@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { estimateFromImage } from "@/lib/openai";
+import { estimateFromImage } from "@/lib/llm";
 import { rateLimit } from "@/lib/cache";
 
 export const runtime = "nodejs";
