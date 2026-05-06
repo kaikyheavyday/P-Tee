@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Loader2,
   LogOut,
   ChevronRight,
+  FileText,
   Globe,
   Info,
   Pencil,
+  ShieldCheck,
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -147,27 +150,19 @@ export default function SettingsPage() {
               label="เวอร์ชัน"
               value="1.0.0"
             />
+            <LinkRow
+              href="/privacy"
+              icon={<ShieldCheck className="h-4 w-4 text-muted-foreground" />}
+              label="นโยบายความเป็นส่วนตัว"
+            />
+            <LinkRow
+              href="/terms"
+              icon={<FileText className="h-4 w-4 text-muted-foreground" />}
+              label="ข้อกำหนดการใช้บริการ"
+            />
           </CardContent>
         </Card>
       </section>
-
-      {/* Logout */}
-      <Button
-        variant="outline"
-        size="lg"
-        className="mt-2 rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10"
-        onClick={logout}
-      >
-        {profile == null ? (
-          <Loader2 className="animate-spin" />
-        ) : (
-          <>
-            <LogOut /> ออกจากระบบ
-          </>
-        )}
-      </Button>
-
-      {/* TODO: future identity features (edit profile, units, notifications, weight log, etc.) */}
     </div>
   );
 }
@@ -192,5 +187,28 @@ function Row({
         <ChevronRight className="h-4 w-4 opacity-40" />
       </div>
     </div>
+  );
+}
+
+function LinkRow({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-accent/50"
+    >
+      <div className="flex items-center gap-2 text-sm">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-40" />
+    </Link>
   );
 }
