@@ -3,6 +3,11 @@ import { estimateFromText } from "@/lib/llm";
 import { localDate } from "@/lib/nutrition";
 import { supabaseAdmin } from "@/lib/supabase";
 import { replyToUser, verifyLineSignature } from "@/lib/line-messaging";
+import {
+  buildTodaySummaryFlex,
+  buildEmptySummaryFlex,
+  type MealRecord,
+} from "@/lib/flex-summary";
 
 // LINE Messaging API webhook event shapes (minimal subset we need)
 type LineTextMessageEvent = {
@@ -269,10 +274,32 @@ export async function POST(req: NextRequest) {
     const db = supabaseAdmin();
     const { data: user } = await db
       .from("users")
-      .select("timezone")
+      .select("timezone, daily_kcal_target")
       .eq("line_user_id", lineUserId)
       .single();
     if (!user) return;
+
+    const tz = user.timezone ?? "Asia/Bangkok";
+    const date = localDate(tz);
+
+    // Handle "สรุปวันนี้" command
+    if (text === "สรุปวันนี้") {
+      const { data: meals } = await db
+        .from("meals")
+        .select("name, kcal, protein_g, carb_g, fat_g")
+        .eq("line_user_id", lineUserId)
+        .eq("local_date", date)
+        .order("eaten_at", { ascending: true });
+
+      const records = (meals ?? []) as MealRecord[];
+      const flex =
+        records.length === 0
+          ? buildEmptySummaryFlex(date)
+          : buildTodaySummaryFlex(records, date, user.daily_kcal_target);
+
+      await replyToUser(e.replyToken, [flex]);
+      return;
+    }
 
     // Estimate calories using LLM
     let estimate;
@@ -284,9 +311,6 @@ export async function POST(req: NextRequest) {
       ]);
       return;
     }
-
-    const tz = user.timezone ?? "Asia/Bangkok";
-    const date = localDate(tz);
 
     // Save meal to Supabase
     await db.from("meals").insert({
