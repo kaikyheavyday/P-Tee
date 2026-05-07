@@ -29,12 +29,23 @@ export async function POST(req: NextRequest) {
 
   // 2. Verify LINE signature
   const signature = req.headers.get("x-line-signature") ?? "";
+  const secretSet = !!process.env.LINE_MESSAGING_CHANNEL_SECRET;
+  const secretLen = (process.env.LINE_MESSAGING_CHANNEL_SECRET ?? "").length;
   let valid: boolean;
   try {
     valid = verifyLineSignature(rawBodyBuf, signature);
-  } catch {
+  } catch (err) {
+    console.error("[webhook] verify threw:", err);
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
+  console.log("[webhook] sig check", {
+    valid,
+    secretSet,
+    secretLen,
+    sigLen: signature.length,
+    bodyLen: rawBodyBuf.length,
+    bodyPreview: rawBodyBuf.toString("utf8").slice(0, 200),
+  });
   if (!valid) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
