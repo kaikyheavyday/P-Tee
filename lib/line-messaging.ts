@@ -35,15 +35,19 @@ export async function pushToUser(
   return { ok: true, status: res.status };
 }
 
-/** Verify the X-Line-Signature header using HMAC-SHA256 of the raw body. */
-export function verifyLineSignature(rawBody: string, signature: string): boolean {
+/** Verify the X-Line-Signature header using HMAC-SHA256 of the raw body bytes. */
+export function verifyLineSignature(rawBody: Buffer, signature: string): boolean {
   const secret = process.env.LINE_MESSAGING_CHANNEL_SECRET;
   if (!secret) throw new Error("LINE_MESSAGING_CHANNEL_SECRET not set");
   const expected = crypto
     .createHmac("sha256", secret)
     .update(rawBody)
     .digest("base64");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  const sig = signature.trim();
+  const expectedBuf = Buffer.from(expected);
+  const sigBuf = Buffer.from(sig);
+  if (expectedBuf.length !== sigBuf.length) return false;
+  return crypto.timingSafeEqual(expectedBuf, sigBuf);
 }
 
 /** Reply to a LINE event using a reply token (one-shot, no extra charge). */

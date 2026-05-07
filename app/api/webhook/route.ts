@@ -24,14 +24,14 @@ export function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  // 1. Read raw body as text for HMAC verification
-  const rawBody = await req.text();
+  // 1. Read raw body as bytes for HMAC verification (avoids any string encoding ambiguity)
+  const rawBodyBuf = Buffer.from(await req.arrayBuffer());
 
   // 2. Verify LINE signature
   const signature = req.headers.get("x-line-signature") ?? "";
   let valid: boolean;
   try {
-    valid = verifyLineSignature(rawBody, signature);
+    valid = verifyLineSignature(rawBodyBuf, signature);
   } catch {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   // 3. Parse body
   let body: LineWebhookBody;
   try {
-    body = JSON.parse(rawBody) as LineWebhookBody;
+    body = JSON.parse(rawBodyBuf.toString("utf8")) as LineWebhookBody;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
