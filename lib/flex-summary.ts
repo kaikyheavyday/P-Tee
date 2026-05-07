@@ -95,15 +95,6 @@ export function buildTodaySummaryFlex(
           flex: 1,
           wrap: true,
         },
-        {
-          type: "text",
-          text: "",
-          weight: "bold" as const,
-          size: "xs",
-          color: "#9CA3AF",
-          flex: 0,
-          align: "end",
-        },
       ],
     });
   }
