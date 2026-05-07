@@ -189,9 +189,9 @@ function buildMealLoggedFlex(estimate: {
             height: "sm",
             color: "#22C55E",
             action: {
-              type: "message",
+              type: "uri",
               label: "เพิ่มอีก",
-              text: "เพิ่มรายการอาหาร",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/meals`,
             },
           },
           {
@@ -200,9 +200,9 @@ function buildMealLoggedFlex(estimate: {
             height: "sm",
             color: "#E2E8F0",
             action: {
-              type: "message",
+              type: "uri",
               label: "ดูสรุปวันนี้",
-              text: "ดูสรุปแคลอรีวันนี้",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/meals`,
             },
           },
         ],
