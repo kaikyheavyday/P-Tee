@@ -4,6 +4,7 @@ const apiKey = process.env.GEMINI_API_KEY;
 const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-preview";
 
 export type CalorieEstimate = {
+  is_food: boolean;
   name: string;
   items: Array<{ name: string; kcal: number; portion: string }>;
   total_kcal: number;
@@ -15,12 +16,15 @@ const SYSTEM = `You are a Thai nutritionist. The user describes (or shows a phot
 Estimate calories using realistic Thai street-food / home-cooking portions.
 If ambiguous, assume 1 standard serving. If you cannot identify the food,
 set confidence < 0.4 and provide a best-guess kcal.
+If the input is clearly NOT food (e.g. a selfie, a landscape, random text, non-food objects),
+set is_food to false, name to "ไม่ใช่อาหาร", total_kcal to 0, items to [], and confidence to 0.
 Always return ONLY valid JSON matching the requested schema. Use Thai language for "name" and "items[].name" when input is Thai.`;
 
 // Gemini responseSchema — simplified JSON Schema (no $schema, no additionalProperties)
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    is_food: { type: "BOOLEAN" },
     name: { type: "STRING" },
     items: {
       type: "ARRAY",
@@ -46,7 +50,7 @@ const RESPONSE_SCHEMA = {
       required: ["protein_g", "carb_g", "fat_g"],
     },
   },
-  required: ["name", "items", "total_kcal", "confidence", "macros"],
+  required: ["is_food", "name", "items", "total_kcal", "confidence", "macros"],
 } as const;
 
 type GeminiPart =

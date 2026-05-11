@@ -25,7 +25,14 @@ type LineImageMessageEvent = {
   message: { type: "image"; id: string };
 };
 
-type LineEvent = LineTextMessageEvent | LineImageMessageEvent | { type: string };
+type LinePostbackEvent = {
+  type: "postback";
+  replyToken: string;
+  source: { userId: string };
+  postback: { data: string };
+};
+
+type LineEvent = LineTextMessageEvent | LineImageMessageEvent | LinePostbackEvent | { type: string };
 
 type LineWebhookBody = {
   events: LineEvent[];
@@ -228,6 +235,163 @@ function buildMealLoggedFlex(estimate: {
   };
 }
 
+function buildConfirmFlex(
+  draftId: string,
+  estimate: {
+    name: string;
+    total_kcal: number;
+    macros: { protein_g: number; carb_g: number; fat_g: number };
+  }
+) {
+  return {
+    type: "flex" as const,
+    altText: `ตรวจสอบ: ${estimate.name} ${estimate.total_kcal} kcal — กด "บันทึกเลย" เพื่อยืนยัน`,
+    contents: {
+      type: "bubble",
+      size: "mega",
+      header: {
+        type: "box",
+        layout: "vertical",
+        backgroundColor: "#FFF4E8",
+        paddingAll: "14px",
+        contents: [
+          {
+            type: "text",
+            text: "🔍 ตรวจสอบก่อนบันทึก",
+            weight: "bold",
+            color: "#EA580C",
+            size: "sm",
+          },
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        paddingAll: "16px",
+        contents: [
+          {
+            type: "text",
+            text: `🍽️ ${estimate.name}`,
+            weight: "bold",
+            size: "xl",
+            color: "#1F2937",
+            wrap: true,
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#FFF4E8",
+            cornerRadius: "16px",
+            paddingAll: "14px",
+            spacing: "xs",
+            contents: [
+              { type: "text", text: "พลังงาน", size: "sm", color: "#9A3412" },
+              {
+                type: "text",
+                text: `${estimate.total_kcal} kcal`,
+                weight: "bold",
+                size: "4xl",
+                color: "#EA580C",
+              },
+            ],
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#F8FAFC",
+            cornerRadius: "16px",
+            paddingAll: "12px",
+            spacing: "sm",
+            contents: [
+              { type: "text", text: "สารอาหารหลัก", size: "sm", weight: "bold", color: "#475569" },
+              {
+                type: "box",
+                layout: "horizontal",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#EEF2FF",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      { type: "text", text: "🥩 โปรตีน", size: "xs", color: "#4F46E5" },
+                      { type: "text", text: `${estimate.macros.protein_g}g`, weight: "bold", size: "md", color: "#312E81" },
+                    ],
+                  },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#ECFEFF",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      { type: "text", text: "🍚 คาร์บ", size: "xs", color: "#0891B2" },
+                      { type: "text", text: `${estimate.macros.carb_g}g`, weight: "bold", size: "md", color: "#0E7490" },
+                    ],
+                  },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#FFF7ED",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      { type: "text", text: "🧈 ไขมัน", size: "xs", color: "#C2410C" },
+                      { type: "text", text: `${estimate.macros.fat_g}g`, weight: "bold", size: "md", color: "#9A3412" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        paddingAll: "14px",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "sm",
+            color: "#22C55E",
+            action: {
+              type: "postback",
+              label: "✅ บันทึกเลย",
+              data: `confirm:${draftId}`,
+              displayText: "บันทึกอาหาร",
+            },
+          },
+          {
+            type: "button",
+            style: "secondary",
+            height: "sm",
+            action: {
+              type: "postback",
+              label: "❌ ยกเลิก",
+              data: `cancel:${draftId}`,
+              displayText: "ยกเลิก",
+            },
+          },
+        ],
+      },
+      styles: {
+        header: { backgroundColor: "#FFF4E8" },
+        body: { backgroundColor: "#FFFFFF" },
+        footer: { backgroundColor: "#FFFFFF", separator: true },
+      },
+    },
+  };
+}
+
 // LINE pings GET to verify the webhook URL is reachable
 export function GET() {
   return NextResponse.json({ ok: true });
@@ -268,8 +432,71 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // 4. Process each message event (fire-and-forget per event; always return 200)
+  // 4. Process each event (fire-and-forget per event; always return 200)
   const tasks = body.events.map(async (event) => {
+    // ── Postback: confirm or cancel a pending meal draft ──────────────────────
+    if (event.type === "postback") {
+      const pb = event as LinePostbackEvent;
+      const lineUserId = pb.source.userId;
+      const db = supabaseAdmin();
+      const colonIdx = pb.postback.data.indexOf(":");
+      const action = colonIdx >= 0 ? pb.postback.data.slice(0, colonIdx) : pb.postback.data;
+      const draftId = colonIdx >= 0 ? pb.postback.data.slice(colonIdx + 1) : "";
+
+      if (action === "confirm" && draftId) {
+        const { data: draft } = await db
+          .from("meal_drafts")
+          .select("*")
+          .eq("id", draftId)
+          .eq("line_user_id", lineUserId)
+          .single();
+
+        if (!draft) {
+          await replyToUser(pb.replyToken, [
+            { type: "text", text: "ไม่พบรายการอาหาร อาจหมดเวลาแล้ว กรุณาส่งอาหารใหม่อีกครั้งนะคะ 🙏" },
+          ]);
+          return;
+        }
+
+        await db.from("meals").insert({
+          line_user_id: draft.line_user_id,
+          eaten_at: new Date().toISOString(),
+          local_date: draft.local_date,
+          input_text: draft.input_text,
+          image_url: draft.image_url,
+          name: draft.name,
+          kcal: draft.kcal,
+          protein_g: draft.protein_g,
+          carb_g: draft.carb_g,
+          fat_g: draft.fat_g,
+          ai_raw: draft.ai_raw,
+          ai_confidence: draft.ai_confidence,
+          edited_by_user: false,
+        });
+        await db.from("meal_drafts").delete().eq("id", draftId);
+
+        await replyToUser(pb.replyToken, [
+          buildMealLoggedFlex({
+            name: draft.name,
+            total_kcal: draft.kcal,
+            macros: { protein_g: draft.protein_g, carb_g: draft.carb_g, fat_g: draft.fat_g },
+          }),
+        ]);
+        return;
+      }
+
+      if (action === "cancel" && draftId) {
+        await db.from("meal_drafts").delete().eq("id", draftId).eq("line_user_id", lineUserId);
+        await replyToUser(pb.replyToken, [
+          { type: "text", text: "ยกเลิกแล้ว 👍 ส่งชื่ออาหารหรือรูปภาพมาใหม่ได้เลยนะคะ" },
+        ]);
+        return;
+      }
+
+      return;
+    }
+
+    // ── Message events ─────────────────────────────────────────────────────────
     if (event.type !== "message") return;
     const e = event as LineTextMessageEvent | LineImageMessageEvent;
 
@@ -295,7 +522,7 @@ export async function POST(req: NextRequest) {
       try {
         const dataUrl = await fetchLineMessageContent(imgEvent.message.id);
 
-        // Upload to Supabase Storage (best-effort; meal is still saved if upload fails)
+        // Upload to Supabase Storage (best-effort; confirm card is still sent if upload fails)
         const match = dataUrl.match(/^data:(image\/[^;]+);base64,(.+)$/);
         if (match) {
           const [, mimeType, b64] = match;
@@ -323,23 +550,35 @@ export async function POST(req: NextRequest) {
         return;
       }
 
-      await db.from("meals").insert({
-        line_user_id: lineUserId,
-        eaten_at: new Date().toISOString(),
-        local_date: date,
-        input_text: "[ภาพ]",
-        image_url: imageUrl,
-        name: estimate.name,
-        kcal: estimate.total_kcal,
-        protein_g: estimate.macros.protein_g,
-        carb_g: estimate.macros.carb_g,
-        fat_g: estimate.macros.fat_g,
-        ai_raw: estimate,
-        ai_confidence: estimate.confidence,
-        edited_by_user: false,
-      });
+      if (!estimate.is_food) {
+        await replyToUser(imgEvent.replyToken, [
+          { type: "text", text: "🤔 ไม่พบอาหารในรูปนี้\n\nกรุณาส่งรูปอาหารที่ต้องการบันทึกนะคะ 🍽️" },
+        ]);
+        return;
+      }
 
-      await replyToUser(imgEvent.replyToken, [buildMealLoggedFlex(estimate)]);
+      // Save as draft and ask for confirmation
+      const { data: imgDraft } = await db
+        .from("meal_drafts")
+        .insert({
+          line_user_id: lineUserId,
+          local_date: date,
+          input_text: "[ภาพ]",
+          image_url: imageUrl,
+          name: estimate.name,
+          kcal: estimate.total_kcal,
+          protein_g: estimate.macros.protein_g,
+          carb_g: estimate.macros.carb_g,
+          fat_g: estimate.macros.fat_g,
+          ai_raw: estimate,
+          ai_confidence: estimate.confidence,
+        })
+        .select("id")
+        .single();
+
+      if (!imgDraft) return;
+
+      await replyToUser(imgEvent.replyToken, [buildConfirmFlex(imgDraft.id, estimate)]);
       return;
     }
 
@@ -349,7 +588,7 @@ export async function POST(req: NextRequest) {
     const text = textEvent.message.text.trim();
     if (!text) return;
 
-    // Handle "สรุปวันนี้" command
+    // Handle "สรุปวันนี้" command (no confirmation needed)
     if (text === "สรุปวันนี้") {
       const { data: meals } = await db
         .from("meals")
@@ -379,23 +618,34 @@ export async function POST(req: NextRequest) {
       return;
     }
 
-    // Save meal to Supabase
-    await db.from("meals").insert({
-      line_user_id: lineUserId,
-      eaten_at: new Date().toISOString(),
-      local_date: date,
-      input_text: text,
-      name: estimate.name,
-      kcal: estimate.total_kcal,
-      protein_g: estimate.macros.protein_g,
-      carb_g: estimate.macros.carb_g,
-      fat_g: estimate.macros.fat_g,
-      ai_raw: estimate,
-      ai_confidence: estimate.confidence,
-      edited_by_user: false,
-    });
+    if (!estimate.is_food) {
+      await replyToUser(textEvent.replyToken, [
+        { type: "text", text: "🤔 ไม่พบข้อมูลอาหารในข้อความนี้\n\nลองพิมพ์ชื่ออาหารที่ต้องการบันทึก หรือส่งรูปอาหารมาได้เลยนะคะ 🍽️" },
+      ]);
+      return;
+    }
 
-    await replyToUser(textEvent.replyToken, [buildMealLoggedFlex(estimate)]);
+    // Save as draft and ask for confirmation
+    const { data: txtDraft } = await db
+      .from("meal_drafts")
+      .insert({
+        line_user_id: lineUserId,
+        local_date: date,
+        input_text: text,
+        name: estimate.name,
+        kcal: estimate.total_kcal,
+        protein_g: estimate.macros.protein_g,
+        carb_g: estimate.macros.carb_g,
+        fat_g: estimate.macros.fat_g,
+        ai_raw: estimate,
+        ai_confidence: estimate.confidence,
+      })
+      .select("id")
+      .single();
+
+    if (!txtDraft) return;
+
+    await replyToUser(textEvent.replyToken, [buildConfirmFlex(txtDraft.id, estimate)]);
   });
 
   // Wait for all events to finish, swallowing individual failures to always return 200

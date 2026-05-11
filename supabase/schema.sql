@@ -40,6 +40,27 @@ create table if not exists public.meals (
 create index if not exists meals_user_date_idx on public.meals (line_user_id, local_date desc);
 create index if not exists meals_user_eaten_idx on public.meals (line_user_id, eaten_at desc);
 
+-- Pending meal estimates awaiting user confirmation before being saved to meals
+create table if not exists public.meal_drafts (
+  id            uuid primary key default gen_random_uuid(),
+  line_user_id  text not null,
+  created_at    timestamptz default now(),
+  local_date    date not null,
+  input_text    text,
+  image_url     text,
+  name          text not null,
+  kcal          int  not null,
+  protein_g     numeric,
+  carb_g        numeric,
+  fat_g         numeric,
+  ai_raw        jsonb,
+  ai_confidence numeric
+);
+
+create index if not exists meal_drafts_user_idx on public.meal_drafts (line_user_id, created_at desc);
+
+alter table public.meal_drafts enable row level security;
+
 create table if not exists public.weight_logs (
   line_user_id        text not null references public.users(line_user_id) on delete cascade,
   date                date not null,
