@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TypingIndicator } from "@/components/ui/typing-indicator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLiff } from "../providers/LiffProvider";
@@ -268,12 +269,12 @@ export default function AddPage() {
 
       {stage === "estimating" && (
         <Card className="rounded-2xl border-none shadow-sm">
-          <CardContent className="space-y-3 p-5">
+          <CardContent className="space-y-4 p-5">
             <div className="flex items-center gap-2 text-brand-600">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm font-medium">กำลังประเมิน…</span>
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-medium">AI กำลังประเมิน…</span>
             </div>
-            <Skeleton className="h-8 w-32" />
+            <TypingIndicator />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
