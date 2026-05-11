@@ -54,7 +54,7 @@ export function verifyLineSignature(rawBody: Buffer, signature: string): boolean
 
 /**
  * Show a typing/loading animation in the LINE chat for up to `seconds` (5–60).
- * Fire-and-forget safe — errors are swallowed so they never block the main flow.
+ * Fire-and-forget safe — errors are logged but never block the main flow.
  */
 export async function showLoadingAnimation(
   chatId: string,
@@ -62,14 +62,22 @@ export async function showLoadingAnimation(
 ): Promise<void> {
   const token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN;
   if (!token) return;
-  await fetch(LOADING_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ chatId, loadingSeconds: Math.min(Math.max(seconds, 5), 60) }),
-  }).catch(() => {});
+  try {
+    const res = await fetch(LOADING_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ chatId, loadingSeconds: Math.min(Math.max(seconds, 5), 60) }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.warn(`[showLoadingAnimation] LINE API error ${res.status}:`, body);
+    }
+  } catch (err) {
+    console.warn("[showLoadingAnimation] fetch error:", err);
+  }
 }
 
 /**
