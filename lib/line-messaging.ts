@@ -8,7 +8,7 @@ import crypto from "node:crypto";
 const PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 const CONTENT_URL = "https://api-data.line.me/v2/bot/message";
-const LOADING_URL = "https://api.line.me/v2/bot/message/loadingAnimation";
+const LOADING_URL = "https://api.line.me/v2/bot/chat/loading/start";
 
 export type LineMessage =
   | { type: "text"; text: string }
