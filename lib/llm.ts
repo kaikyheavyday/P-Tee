@@ -71,7 +71,6 @@ async function callGemini(parts: GeminiPart[]): Promise<CalorieEstimate> {
         temperature: 0.2,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   });

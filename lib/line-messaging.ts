@@ -8,6 +8,7 @@ import crypto from "node:crypto";
 const PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 const CONTENT_URL = "https://api-data.line.me/v2/bot/message";
+const LOADING_URL = "https://api.line.me/v2/bot/message/loadingAnimation";
 
 export type LineMessage =
   | { type: "text"; text: string }
@@ -49,6 +50,26 @@ export function verifyLineSignature(rawBody: Buffer, signature: string): boolean
   const sigBuf = Buffer.from(sig);
   if (expectedBuf.length !== sigBuf.length) return false;
   return crypto.timingSafeEqual(expectedBuf, sigBuf);
+}
+
+/**
+ * Show a typing/loading animation in the LINE chat for up to `seconds` (5–60).
+ * Fire-and-forget safe — errors are swallowed so they never block the main flow.
+ */
+export async function showLoadingAnimation(
+  chatId: string,
+  seconds: number = 30,
+): Promise<void> {
+  const token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN;
+  if (!token) return;
+  await fetch(LOADING_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ chatId, loadingSeconds: Math.min(Math.max(seconds, 5), 60) }),
+  }).catch(() => {});
 }
 
 /**

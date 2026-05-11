@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { estimateFromImage, estimateFromText } from "@/lib/llm";
 import { localDate } from "@/lib/nutrition";
 import { supabaseAdmin } from "@/lib/supabase";
-import { fetchLineMessageContent, replyToUser, verifyLineSignature } from "@/lib/line-messaging";
+import { fetchLineMessageContent, replyToUser, showLoadingAnimation, verifyLineSignature } from "@/lib/line-messaging";
 import {
   buildTodaySummaryFlex,
   buildEmptySummaryFlex,
@@ -502,6 +502,9 @@ export async function POST(req: NextRequest) {
 
     const lineUserId = e.source.userId;
 
+    // Show typing animation immediately while we process
+    await showLoadingAnimation(lineUserId, 30);
+
     // Look up user — silently skip if not registered
     const db = supabaseAdmin();
     const { data: user } = await db
@@ -543,7 +546,8 @@ export async function POST(req: NextRequest) {
         }
 
         estimate = await estimateFromImage(dataUrl);
-      } catch {
+      } catch (err) {
+        console.error("[webhook] image estimate error:", err);
         await replyToUser(imgEvent.replyToken, [
           { type: "text", text: "ขอโทษนะคะ ไม่สามารถวิเคราะห์รูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
         ]);
@@ -611,7 +615,8 @@ export async function POST(req: NextRequest) {
     let estimate;
     try {
       estimate = await estimateFromText(text);
-    } catch {
+    } catch (err) {
+      console.error("[webhook] text estimate error:", err);
       await replyToUser(textEvent.replyToken, [
         { type: "text", text: "ขอโทษนะคะ ไม่สามารถประมาณแคลอรี่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
       ]);
@@ -648,8 +653,10 @@ export async function POST(req: NextRequest) {
     await replyToUser(textEvent.replyToken, [buildConfirmFlex(txtDraft.id, estimate)]);
   });
 
-  // Wait for all events to finish, swallowing individual failures to always return 200
-  await Promise.allSettled(tasks);
+  // 4. Process events in background — return 200 immediately so LINE never retries
+  after(async () => {
+    await Promise.allSettled(tasks);
+  });
 
   return NextResponse.json({ ok: true });
 }
