@@ -2,12 +2,16 @@ import OpenAI from "openai";
 import crypto from "node:crypto";
 
 const apiKey = process.env.OPENAI_API_KEY;
-const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const model = process.env.OPENAI_MODEL || "openai/gpt-4o-mini";
 
 let _client: OpenAI | null = null;
 export function openai(): OpenAI {
   if (!apiKey) throw new Error("OPENAI_API_KEY not set");
-  if (!_client) _client = new OpenAI({ apiKey });
+  if (!_client)
+    _client = new OpenAI({
+      apiKey,
+      baseURL: "https://openrouter.ai/api/v1",
+    });
   return _client;
 }
 
