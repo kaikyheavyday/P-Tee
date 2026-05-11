@@ -53,6 +53,8 @@ alter table public.meals      enable row level security;
 alter table public.weight_logs enable row level security;
 -- (No policies = nothing accessible via anon key. Service role bypasses RLS.)
 
--- Storage bucket for meal photos: create manually in Supabase dashboard:
+-- Storage bucket for meal photos (already created in Supabase dashboard):
 --   name: meal-photos
---   public: false
+--   public: true
+--   Images are stored at: {line_user_id}/{uuid}.{ext}
+--   image_url column stores the full public URL

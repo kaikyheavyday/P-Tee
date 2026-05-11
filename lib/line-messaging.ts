@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 
 const PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const REPLY_URL = "https://api.line.me/v2/bot/message/reply";
+const CONTENT_URL = "https://api-data.line.me/v2/bot/message";
 
 export type LineMessage =
   | { type: "text"; text: string }
@@ -48,6 +49,26 @@ export function verifyLineSignature(rawBody: Buffer, signature: string): boolean
   const sigBuf = Buffer.from(sig);
   if (expectedBuf.length !== sigBuf.length) return false;
   return crypto.timingSafeEqual(expectedBuf, sigBuf);
+}
+
+/**
+ * Download the binary content of a LINE image message and return it as a
+ * base64 data URL (e.g. "data:image/jpeg;base64,...").
+ */
+export async function fetchLineMessageContent(messageId: string): Promise<string> {
+  const token = process.env.LINE_MESSAGING_CHANNEL_ACCESS_TOKEN;
+  if (!token) throw new Error("LINE_MESSAGING_CHANNEL_ACCESS_TOKEN not set");
+
+  const res = await fetch(`${CONTENT_URL}/${messageId}/content`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`LINE content fetch failed ${res.status}: ${text.slice(0, 200)}`);
+  }
+  const contentType = res.headers.get("content-type") ?? "image/jpeg";
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return `data:${contentType};base64,${buffer.toString("base64")}`;
 }
 
 /** Reply to a LINE event using a reply token (one-shot, no extra charge). */

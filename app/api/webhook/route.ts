@@ -1,8 +1,9 @@
+import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { estimateFromText } from "@/lib/llm";
+import { estimateFromImage, estimateFromText } from "@/lib/llm";
 import { localDate } from "@/lib/nutrition";
 import { supabaseAdmin } from "@/lib/supabase";
-import { replyToUser, verifyLineSignature } from "@/lib/line-messaging";
+import { fetchLineMessageContent, replyToUser, verifyLineSignature } from "@/lib/line-messaging";
 import {
   buildTodaySummaryFlex,
   buildEmptySummaryFlex,
@@ -17,7 +18,14 @@ type LineTextMessageEvent = {
   message: { type: "text"; text: string };
 };
 
-type LineEvent = LineTextMessageEvent | { type: string };
+type LineImageMessageEvent = {
+  type: "message";
+  replyToken: string;
+  source: { userId: string };
+  message: { type: "image"; id: string };
+};
+
+type LineEvent = LineTextMessageEvent | LineImageMessageEvent | { type: string };
 
 type LineWebhookBody = {
   events: LineEvent[];
@@ -260,15 +268,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // 4. Process each text message event (fire-and-forget per event; always return 200)
+  // 4. Process each message event (fire-and-forget per event; always return 200)
   const tasks = body.events.map(async (event) => {
     if (event.type !== "message") return;
-    const e = event as LineTextMessageEvent;
-    if (e.message.type !== "text") return;
+    const e = event as LineTextMessageEvent | LineImageMessageEvent;
 
     const lineUserId = e.source.userId;
-    const text = e.message.text.trim();
-    if (!text) return;
 
     // Look up user — silently skip if not registered
     const db = supabaseAdmin();
@@ -281,6 +286,68 @@ export async function POST(req: NextRequest) {
 
     const tz = user.timezone ?? "Asia/Bangkok";
     const date = localDate(tz);
+
+    // ── Image message ────────────────────────────────────────────────────────
+    if (e.message.type === "image") {
+      const imgEvent = e as LineImageMessageEvent;
+      let estimate;
+      let imageUrl: string | null = null;
+      try {
+        const dataUrl = await fetchLineMessageContent(imgEvent.message.id);
+
+        // Upload to Supabase Storage (best-effort; meal is still saved if upload fails)
+        const match = dataUrl.match(/^data:(image\/[^;]+);base64,(.+)$/);
+        if (match) {
+          const [, mimeType, b64] = match;
+          const ext = mimeType.split("/")[1] ?? "jpeg";
+          const storagePath = `${lineUserId}/${crypto.randomUUID()}.${ext}`;
+          const { error: uploadErr } = await db.storage
+            .from("meal-photos")
+            .upload(storagePath, Buffer.from(b64, "base64"), {
+              contentType: mimeType,
+              upsert: false,
+            });
+          if (!uploadErr) {
+            const { data: publicData } = db.storage
+              .from("meal-photos")
+              .getPublicUrl(storagePath);
+            imageUrl = publicData.publicUrl;
+          }
+        }
+
+        estimate = await estimateFromImage(dataUrl);
+      } catch {
+        await replyToUser(imgEvent.replyToken, [
+          { type: "text", text: "ขอโทษนะคะ ไม่สามารถวิเคราะห์รูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
+        ]);
+        return;
+      }
+
+      await db.from("meals").insert({
+        line_user_id: lineUserId,
+        eaten_at: new Date().toISOString(),
+        local_date: date,
+        input_text: "[ภาพ]",
+        image_url: imageUrl,
+        name: estimate.name,
+        kcal: estimate.total_kcal,
+        protein_g: estimate.macros.protein_g,
+        carb_g: estimate.macros.carb_g,
+        fat_g: estimate.macros.fat_g,
+        ai_raw: estimate,
+        ai_confidence: estimate.confidence,
+        edited_by_user: false,
+      });
+
+      await replyToUser(imgEvent.replyToken, [buildMealLoggedFlex(estimate)]);
+      return;
+    }
+
+    // ── Text message ─────────────────────────────────────────────────────────
+    if (e.message.type !== "text") return;
+    const textEvent = e as LineTextMessageEvent;
+    const text = textEvent.message.text.trim();
+    if (!text) return;
 
     // Handle "สรุปวันนี้" command
     if (text === "สรุปวันนี้") {
@@ -297,7 +364,7 @@ export async function POST(req: NextRequest) {
           ? buildEmptySummaryFlex(date)
           : buildTodaySummaryFlex(records, date, user.daily_kcal_target);
 
-      await replyToUser(e.replyToken, [flex]);
+      await replyToUser(textEvent.replyToken, [flex]);
       return;
     }
 
@@ -306,7 +373,7 @@ export async function POST(req: NextRequest) {
     try {
       estimate = await estimateFromText(text);
     } catch {
-      await replyToUser(e.replyToken, [
+      await replyToUser(textEvent.replyToken, [
         { type: "text", text: "ขอโทษนะคะ ไม่สามารถประมาณแคลอรี่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
       ]);
       return;
@@ -328,7 +395,7 @@ export async function POST(req: NextRequest) {
       edited_by_user: false,
     });
 
-    await replyToUser(e.replyToken, [buildMealLoggedFlex(estimate)]);
+    await replyToUser(textEvent.replyToken, [buildMealLoggedFlex(estimate)]);
   });
 
   // Wait for all events to finish, swallowing individual failures to always return 200
