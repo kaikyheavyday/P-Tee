@@ -438,6 +438,10 @@ export async function POST(req: NextRequest) {
     if (event.type === "postback") {
       const pb = event as LinePostbackEvent;
       const lineUserId = pb.source.userId;
+
+      // Show typing animation while processing the postback
+      await showLoadingAnimation(lineUserId, 15);
+
       const db = supabaseAdmin();
       const colonIdx = pb.postback.data.indexOf(":");
       const action = colonIdx >= 0 ? pb.postback.data.slice(0, colonIdx) : pb.postback.data;
