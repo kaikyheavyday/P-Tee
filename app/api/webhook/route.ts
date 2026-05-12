@@ -375,6 +375,16 @@ function buildConfirmFlex(
             style: "secondary",
             height: "sm",
             action: {
+              type: "uri",
+              label: "✏️ แก้ไข",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/draft/${draftId}`,
+            },
+          },
+          {
+            type: "button",
+            style: "secondary",
+            height: "sm",
+            action: {
               type: "postback",
               label: "❌ ยกเลิก",
               data: `cancel:${draftId}`,
