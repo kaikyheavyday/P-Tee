@@ -122,7 +122,7 @@ export async function POST(req: Request, { params }: Params) {
         fat_g: meal.fat_g ?? 0,
       },
     }),
-  ]).catch((err) => console.error("[meal-drafts confirm] push error:", err));
+  ]).catch((err) => console.error(`[meal-drafts confirm] push error for draft=${id}:`, err));
 
   return NextResponse.json({ meal });
 }
