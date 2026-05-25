@@ -55,9 +55,9 @@ function getBangkokHour(): number {
 }
 
 function detectSlot(hour: number): Slot | null {
-  if (hour >= 7 && hour < 10) return "morning";
+  if (hour >= 7 && hour < 12) return "morning";
   if (hour >= 12 && hour < 13) return "noon";
-  if (hour >= 18 && hour < 19) return "evening";
+  if (hour >= 13 && hour < 19) return "evening";
   return null;
 }
 
