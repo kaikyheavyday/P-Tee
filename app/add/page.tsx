@@ -172,7 +172,10 @@ export default function AddPage() {
             <Card className="rounded-2xl border-none shadow-sm">
               <CardContent className="space-y-4 p-5">
                 <div className="space-y-2">
-                  <Label htmlFor="food" className="text-xs text-muted-foreground">
+                  <Label
+                    htmlFor="food"
+                    className="text-xs text-muted-foreground"
+                  >
                     ชื่ออาหาร
                   </Label>
                   <Textarea
@@ -184,7 +187,9 @@ export default function AddPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">ปริมาณ</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    ปริมาณ
+                  </Label>
                   <div className="grid grid-cols-3 gap-2">
                     {PORTIONS.map((p) => (
                       <button
@@ -232,7 +237,9 @@ export default function AddPage() {
                     className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50/50 text-brand-600 hover:bg-brand-50"
                   >
                     <Upload className="h-8 w-8" />
-                    <span className="text-sm font-medium">แตะเพื่อถ่าย/เลือกรูป</span>
+                    <span className="text-sm font-medium">
+                      แตะเพื่อถ่าย/เลือกรูป
+                    </span>
                   </button>
                 )}
                 {imageDataUrl && (
@@ -287,9 +294,7 @@ export default function AddPage() {
 
       {stage === "preview" && estimate && (
         <>
-          <section
-            className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-5 shadow-sm"
-          >
+          <section className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -313,10 +318,11 @@ export default function AddPage() {
                 onChange={(e) =>
                   setEditedKcal(Math.max(0, Number(e.target.value) || 0))
                 }
-                className="h-14 w-32 rounded-xl border-0 bg-white/20 text-3xl font-semibold text-white placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white"
                 className="h-14 w-36 rounded-xl border-brand-100 bg-brand-50 text-3xl font-semibold text-brand-600 placeholder:text-brand-300 focus-visible:ring-brand-500"
               />
-              <span className="text-sm text-muted-foreground">kcal · แก้ได้</span>
+              <span className="text-sm text-muted-foreground">
+                kcal · แก้ได้
+              </span>
             </div>
           </section>
 
@@ -348,9 +354,21 @@ export default function AddPage() {
 
           <Card className="rounded-2xl border-none shadow-sm">
             <CardContent className="grid grid-cols-3 gap-2 p-4">
-              <Macro label="โปรตีน" value={estimate.macros.protein_g} icon={Dumbbell} />
-              <Macro label="คาร์บ" value={estimate.macros.carb_g} icon={Wheat} />
-              <Macro label="ไขมัน" value={estimate.macros.fat_g} icon={Droplets} />
+              <Macro
+                label="โปรตีน"
+                value={estimate.macros.protein_g}
+                icon={Dumbbell}
+              />
+              <Macro
+                label="คาร์บ"
+                value={estimate.macros.carb_g}
+                icon={Wheat}
+              />
+              <Macro
+                label="ไขมัน"
+                value={estimate.macros.fat_g}
+                icon={Droplets}
+              />
             </CardContent>
           </Card>
 
