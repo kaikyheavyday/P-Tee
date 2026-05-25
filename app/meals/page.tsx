@@ -167,7 +167,7 @@ export default function MealsListPage() {
       </div>
 
       {/* Summary */}
-      <Card className="rounded-2xl border-none bg-gradient-to-r from-brand-50 to-brand-100">
+      <Card className="rounded-2xl border-brand-100 bg-brand-50">
         <CardContent className="flex items-center justify-between p-4">
           <div>
             <p className="text-xs text-brand-700">วันที่เลือก</p>
@@ -245,7 +245,7 @@ export default function MealsListPage() {
                                   )}
                                 </p>
                               </div>
-                              <div className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
+                              <div className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-600">
                                 {m.kcal} kcal
                               </div>
                             </CardContent>

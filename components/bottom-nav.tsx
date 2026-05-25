@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, UtensilsCrossed, Plus, Settings } from "lucide-react";
+import { BarChart3, Home, UtensilsCrossed, Plus, Settings } from "lucide-react";
 import { useLiff } from "@/app/providers/LiffProvider";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const ITEMS = [
 ] as const;
 
 const RIGHT_ITEMS = [
+  { href: "/summary", label: "สรุป", icon: BarChart3 },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ] as const;
 
@@ -43,14 +44,14 @@ export function BottomNav() {
           aria-label="เพิ่มอาหาร"
           aria-current={addActive ? "page" : undefined}
           className={cn(
-            "-mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-brand-400 text-white shadow-[0_10px_25px_-8px_rgba(255,168,64,0.7)] ring-4 ring-background transition-transform active:scale-95",
+            "-mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-brand-400 text-primary-foreground shadow-[0_10px_25px_-8px_rgba(255,168,64,0.7)] ring-4 ring-background transition-transform active:scale-95",
             addActive && "ring-brand-100",
           )}
         >
           <Plus className="h-7 w-7" strokeWidth={2.5} />
         </Link>
         <NavItem item={RIGHT_ITEMS[0]} active={isActive(RIGHT_ITEMS[0].href)} />
-        <PlaceholderSlot />
+        <NavItem item={RIGHT_ITEMS[1]} active={isActive(RIGHT_ITEMS[1].href)} />
       </div>
     </nav>
   );
@@ -70,16 +71,11 @@ function NavItem({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex flex-1 flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors",
-        active ? "text-brand-500" : "text-muted-foreground hover:text-foreground",
+        active ? "text-brand-600" : "text-muted-foreground hover:text-foreground",
       )}
     >
       <Icon className={cn("h-5 w-5", active && "stroke-[2.5]")} />
       <span>{item.label}</span>
     </Link>
   );
-}
-
-function PlaceholderSlot() {
-  // Symmetry filler so the right side mirrors the left around the centered FAB.
-  return <span className="flex-1" aria-hidden />;
 }

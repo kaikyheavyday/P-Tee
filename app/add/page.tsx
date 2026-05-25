@@ -10,6 +10,9 @@ import {
   Upload,
   Save,
   RotateCcw,
+  Droplets,
+  Dumbbell,
+  Wheat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -285,22 +288,18 @@ export default function AddPage() {
       {stage === "preview" && estimate && (
         <>
           <section
-            className="relative overflow-hidden rounded-3xl p-5 text-white shadow-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, #FFB85C 0%, #FF8A0D 60%, #FF6B00 100%)",
-            }}
+            className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-5 shadow-sm"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   AI ประเมินว่า
                 </p>
-                <p className="mt-1 truncate text-xl font-semibold">
+                <p className="mt-1 truncate text-xl font-semibold text-foreground">
                   {estimate.name}
                 </p>
               </div>
-              <Badge className="bg-white/25 text-white hover:bg-white/30">
+              <Badge className="bg-brand-50 text-brand-600 hover:bg-brand-100">
                 <Sparkles className="mr-1 h-3 w-3" />
                 {Math.round(estimate.confidence * 100)}%
               </Badge>
@@ -315,8 +314,9 @@ export default function AddPage() {
                   setEditedKcal(Math.max(0, Number(e.target.value) || 0))
                 }
                 className="h-14 w-32 rounded-xl border-0 bg-white/20 text-3xl font-semibold text-white placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white"
+                className="h-14 w-36 rounded-xl border-brand-100 bg-brand-50 text-3xl font-semibold text-brand-600 placeholder:text-brand-300 focus-visible:ring-brand-500"
               />
-              <span className="text-sm text-white/80">kcal · แก้ได้</span>
+              <span className="text-sm text-muted-foreground">kcal · แก้ได้</span>
             </div>
           </section>
 
@@ -348,9 +348,9 @@ export default function AddPage() {
 
           <Card className="rounded-2xl border-none shadow-sm">
             <CardContent className="grid grid-cols-3 gap-2 p-4">
-              <Macro label="โปรตีน" value={estimate.macros.protein_g} tone="bg-emerald-100 text-emerald-700" />
-              <Macro label="คาร์บ" value={estimate.macros.carb_g} tone="bg-amber-100 text-amber-700" />
-              <Macro label="ไขมัน" value={estimate.macros.fat_g} tone="bg-rose-100 text-rose-700" />
+              <Macro label="โปรตีน" value={estimate.macros.protein_g} icon={Dumbbell} />
+              <Macro label="คาร์บ" value={estimate.macros.carb_g} icon={Wheat} />
+              <Macro label="ไขมัน" value={estimate.macros.fat_g} icon={Droplets} />
             </CardContent>
           </Card>
 
@@ -438,15 +438,18 @@ function ModeCard({
 function Macro({
   label,
   value,
-  tone,
+  icon: Icon,
 }: {
   label: string;
   value: number;
-  tone: string;
+  icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <div className="flex flex-col items-center gap-1 text-center">
-      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${tone}`}>
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="text-[10px] font-medium text-muted-foreground">
         {label}
       </span>
       <p className="text-base font-semibold leading-none">

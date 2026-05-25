@@ -10,6 +10,9 @@ import {
   Lock,
   Pencil,
   RotateCcw,
+  Droplets,
+  Dumbbell,
+  Wheat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -238,36 +241,32 @@ export default function DraftEditPage() {
           {/* AI estimate result */}
           {!examining && aiEstimate && (
             <div
-              className="relative overflow-hidden rounded-2xl p-4 text-white shadow"
-              style={{
-                background:
-                  "linear-gradient(135deg, #FFB85C 0%, #FF8A0D 60%, #FF6B00 100%)",
-              }}
+              className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     AI ประเมินว่า
                   </p>
-                  <p className="mt-0.5 truncate font-semibold">
+                  <p className="mt-0.5 truncate font-semibold text-foreground">
                     {aiEstimate.name}
                   </p>
                 </div>
-                <Badge className="shrink-0 bg-white/25 text-white hover:bg-white/30">
+                <Badge className="shrink-0 bg-brand-50 text-brand-600 hover:bg-brand-100">
                   <Sparkles className="mr-1 h-3 w-3" />
                   {Math.round(aiEstimate.confidence * 100)}%
                 </Badge>
               </div>
-              <p className="mt-2 text-2xl font-bold">
+              <p className="mt-2 text-2xl font-bold text-brand-600">
                 {aiEstimate.total_kcal.toLocaleString()}{" "}
-                <span className="text-sm font-normal text-white/80">kcal</span>
+                <span className="text-sm font-normal text-muted-foreground">kcal</span>
               </p>
-              <div className="mt-2 flex gap-3 text-xs text-white/90">
-                <span>🥩 {Math.round(aiEstimate.macros.protein_g)}g</span>
-                <span>🍚 {Math.round(aiEstimate.macros.carb_g)}g</span>
-                <span>🧈 {Math.round(aiEstimate.macros.fat_g)}g</span>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                <MacroSummary icon={Dumbbell} label="โปรตีน" value={aiEstimate.macros.protein_g} />
+                <MacroSummary icon={Wheat} label="คาร์บ" value={aiEstimate.macros.carb_g} />
+                <MacroSummary icon={Droplets} label="ไขมัน" value={aiEstimate.macros.fat_g} />
               </div>
-              <p className="mt-1 text-[10px] text-white/60">
+              <p className="mt-3 text-[10px] text-muted-foreground">
                 * ค่าอัปเดตในฟอร์มด้านล่างแล้ว
               </p>
             </div>
@@ -337,6 +336,7 @@ export default function DraftEditPage() {
               <MacroField
                 id="protein"
                 label="โปรตีน (g)"
+                icon={Dumbbell}
                 value={proteinG}
                 onChange={setProteinG}
                 disabled={!adjustMode}
@@ -344,6 +344,7 @@ export default function DraftEditPage() {
               <MacroField
                 id="carb"
                 label="คาร์บ (g)"
+                icon={Wheat}
                 value={carbG}
                 onChange={setCarbG}
                 disabled={!adjustMode}
@@ -351,6 +352,7 @@ export default function DraftEditPage() {
               <MacroField
                 id="fat"
                 label="ไขมัน (g)"
+                icon={Droplets}
                 value={fatG}
                 onChange={setFatG}
                 disabled={!adjustMode}
@@ -404,19 +406,22 @@ export default function DraftEditPage() {
 function MacroField({
   id,
   label,
+  icon: Icon,
   value,
   onChange,
   disabled,
 }: {
   id: string;
   label: string;
+  icon: React.ComponentType<{ className?: string }>;
   value: number;
   onChange: (v: number) => void;
   disabled?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-[11px] text-muted-foreground">
+      <Label htmlFor={id} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Icon className="h-3.5 w-3.5 text-brand-600" />
         {label}
       </Label>
       <Input
@@ -433,6 +438,24 @@ function MacroField({
           disabled && "cursor-not-allowed opacity-60",
         )}
       />
+    </div>
+  );
+}
+
+function MacroSummary({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-xl bg-brand-50 p-2 text-center">
+      <Icon className="mx-auto h-4 w-4 text-brand-600" />
+      <p className="mt-1 text-[10px] text-muted-foreground">{label}</p>
+      <p className="font-semibold text-foreground">{Math.round(value)}g</p>
     </div>
   );
 }

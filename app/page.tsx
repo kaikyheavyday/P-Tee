@@ -8,7 +8,10 @@ import {
   Loader2,
   Settings as SettingsIcon,
   ChevronRight,
-  Flame,
+  Droplets,
+  Dumbbell,
+  UtensilsCrossed,
+  Wheat,
 } from "lucide-react";
 import { useLiff } from "./providers/LiffProvider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -190,27 +193,23 @@ export default function Home() {
           <Skeleton className="h-44 w-full rounded-3xl" />
         ) : (
           <section
-            className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, #FFB85C 0%, #FF8A0D 60%, #FF6B00 100%)",
-            }}
+            className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-5 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   แคลวันนี้
                 </p>
-                <p className="mt-1 text-3xl font-semibold leading-none">
+                <p className="mt-1 text-4xl font-semibold leading-none text-brand-600">
                   {totals.kcal.toLocaleString()}
-                  <span className="ml-1 text-sm font-normal text-white/80">
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
                     kcal
                   </span>
                 </p>
-                <p className="mt-3 text-xs text-white/80">
+                <p className="mt-4 text-xs text-muted-foreground">
                   เป้าหมาย {target.toLocaleString()} kcal
                 </p>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-foreground">
                   เหลืออีก {remaining.toLocaleString()} kcal
                 </p>
               </div>
@@ -230,17 +229,17 @@ export default function Home() {
             <MacroCard
               label="โปรตีน"
               value={totals.protein}
-              color="bg-emerald-100 text-emerald-700"
+              icon={Dumbbell}
             />
             <MacroCard
               label="คาร์บ"
               value={totals.carb}
-              color="bg-amber-100 text-amber-700"
+              icon={Wheat}
             />
             <MacroCard
               label="ไขมัน"
               value={totals.fat}
-              color="bg-rose-100 text-rose-700"
+              icon={Droplets}
             />
           </div>
         )}
@@ -264,7 +263,7 @@ export default function Home() {
           ) : recent.length === 0 ? (
             <Card className="rounded-2xl border-dashed">
               <CardContent className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
-                <Flame className="h-6 w-6 text-brand-400" />
+                <UtensilsCrossed className="h-6 w-6 text-brand-500" />
                 <p className="text-sm">
                   ยังไม่มีรายการ — แตะปุ่ม + ด้านล่างเพื่อเริ่ม
                 </p>
@@ -288,7 +287,7 @@ export default function Home() {
                             })}
                           </p>
                         </div>
-                        <div className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
+                        <div className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-600">
                           {m.kcal} kcal
                         </div>
                       </CardContent>
@@ -318,7 +317,7 @@ function Ring({ percent }: { percent: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="rgba(255,255,255,0.25)"
+          stroke="hsl(var(--muted))"
           strokeWidth={stroke}
           fill="none"
         />
@@ -326,7 +325,7 @@ function Ring({ percent }: { percent: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="white"
+          stroke="#FFA840"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -335,7 +334,7 @@ function Ring({ percent }: { percent: number }) {
           className="transition-[stroke-dashoffset] duration-500"
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-base font-semibold">
+      <div className="absolute inset-0 flex items-center justify-center text-base font-semibold text-brand-600">
         {Math.round(percent)}%
       </div>
     </div>
@@ -345,18 +344,19 @@ function Ring({ percent }: { percent: number }) {
 function MacroCard({
   label,
   value,
-  color,
+  icon: Icon,
 }: {
   label: string;
   value: number;
-  color: string;
+  icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Card className="rounded-2xl border-none shadow-sm">
-      <CardContent className="flex flex-col items-center gap-1 p-3 text-center">
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${color}`}
-        >
+    <Card className="rounded-2xl border-brand-100 shadow-sm">
+      <CardContent className="flex flex-col items-center gap-1.5 p-3 text-center">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="text-[10px] font-medium text-muted-foreground">
           {label}
         </span>
         <p className="text-lg font-semibold leading-none">

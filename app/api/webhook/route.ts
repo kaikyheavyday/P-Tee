@@ -62,9 +62,9 @@ function buildConfirmFlex(
         contents: [
           {
             type: "text",
-            text: "🔍 ตรวจสอบก่อนบันทึก",
+            text: "ตรวจสอบก่อนบันทึก",
             weight: "bold",
-            color: "#EA580C",
+            color: "#E37200",
             size: "sm",
           },
         ],
@@ -77,7 +77,7 @@ function buildConfirmFlex(
         contents: [
           {
             type: "text",
-            text: `🍽️ ${estimate.name}`,
+            text: estimate.name,
             weight: "bold",
             size: "xl",
             color: "#1F2937",
@@ -86,18 +86,18 @@ function buildConfirmFlex(
           {
             type: "box",
             layout: "vertical",
-            backgroundColor: "#FFF4E8",
-            cornerRadius: "16px",
+            backgroundColor: "#FFF6EC",
+            cornerRadius: "12px",
             paddingAll: "14px",
             spacing: "xs",
             contents: [
-              { type: "text", text: "พลังงาน", size: "sm", color: "#9A3412" },
+              { type: "text", text: "พลังงาน", size: "sm", color: "#A85400" },
               {
                 type: "text",
                 text: `${estimate.total_kcal} kcal`,
                 weight: "bold",
                 size: "4xl",
-                color: "#EA580C",
+                color: "#E37200",
               },
             ],
           },
@@ -105,7 +105,7 @@ function buildConfirmFlex(
             type: "box",
             layout: "vertical",
             backgroundColor: "#F8FAFC",
-            cornerRadius: "16px",
+            cornerRadius: "12px",
             paddingAll: "12px",
             spacing: "sm",
             contents: [
@@ -118,37 +118,37 @@ function buildConfirmFlex(
                   {
                     type: "box",
                     layout: "vertical",
-                    backgroundColor: "#EEF2FF",
-                    cornerRadius: "12px",
+                    backgroundColor: "#FFF6EC",
+                    cornerRadius: "10px",
                     paddingAll: "10px",
                     alignItems: "center",
                     contents: [
-                      { type: "text", text: "🥩 โปรตีน", size: "xs", color: "#4F46E5" },
-                      { type: "text", text: `${estimate.macros.protein_g}g`, weight: "bold", size: "md", color: "#312E81" },
+                      { type: "text", text: "โปรตีน", size: "xs", color: "#A85400" },
+                      { type: "text", text: `${estimate.macros.protein_g}g`, weight: "bold", size: "md", color: "#7A3D00" },
                     ],
                   },
                   {
                     type: "box",
                     layout: "vertical",
-                    backgroundColor: "#ECFEFF",
-                    cornerRadius: "12px",
+                    backgroundColor: "#FFF6EC",
+                    cornerRadius: "10px",
                     paddingAll: "10px",
                     alignItems: "center",
                     contents: [
-                      { type: "text", text: "🍚 คาร์บ", size: "xs", color: "#0891B2" },
-                      { type: "text", text: `${estimate.macros.carb_g}g`, weight: "bold", size: "md", color: "#0E7490" },
+                      { type: "text", text: "คาร์บ", size: "xs", color: "#A85400" },
+                      { type: "text", text: `${estimate.macros.carb_g}g`, weight: "bold", size: "md", color: "#7A3D00" },
                     ],
                   },
                   {
                     type: "box",
                     layout: "vertical",
-                    backgroundColor: "#FFF7ED",
-                    cornerRadius: "12px",
+                    backgroundColor: "#FFF6EC",
+                    cornerRadius: "10px",
                     paddingAll: "10px",
                     alignItems: "center",
                     contents: [
-                      { type: "text", text: "🧈 ไขมัน", size: "xs", color: "#C2410C" },
-                      { type: "text", text: `${estimate.macros.fat_g}g`, weight: "bold", size: "md", color: "#9A3412" },
+                      { type: "text", text: "ไขมัน", size: "xs", color: "#A85400" },
+                      { type: "text", text: `${estimate.macros.fat_g}g`, weight: "bold", size: "md", color: "#7A3D00" },
                     ],
                   },
                 ],
@@ -167,10 +167,10 @@ function buildConfirmFlex(
             type: "button",
             style: "primary",
             height: "sm",
-            color: "#22C55E",
+            color: "#FFA840",
             action: {
               type: "postback",
-              label: "✅ บันทึกเลย",
+              label: "บันทึกเลย",
               data: `confirm:${draftId}`,
               displayText: "บันทึกอาหาร",
             },
@@ -181,7 +181,7 @@ function buildConfirmFlex(
             height: "sm",
             action: {
               type: "uri",
-              label: "✏️ แก้ไข",
+              label: "แก้ไข",
               uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/draft/${draftId}`,
             },
           },
@@ -191,9 +191,92 @@ function buildConfirmFlex(
             height: "sm",
             action: {
               type: "postback",
-              label: "❌ ยกเลิก",
+              label: "ยกเลิก",
               data: `cancel:${draftId}`,
               displayText: "ยกเลิก",
+            },
+          },
+        ],
+      },
+      styles: {
+        header: { backgroundColor: "#FFF4E8" },
+        body: { backgroundColor: "#FFFFFF" },
+        footer: { backgroundColor: "#FFFFFF", separator: true },
+      },
+    },
+  };
+}
+
+function buildOnboardingFlex() {
+  return {
+    type: "flex" as const,
+    altText: "เริ่มใช้งาน P-Tee ก่อนบันทึกอาหาร",
+    contents: {
+      type: "bubble",
+      size: "mega",
+      header: {
+        type: "box",
+        layout: "vertical",
+        backgroundColor: "#FFF4E8",
+        paddingAll: "14px",
+        contents: [
+          {
+            type: "text",
+            text: "เริ่มใช้งาน P-Tee",
+            weight: "bold",
+            color: "#E37200",
+            size: "sm",
+          },
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        paddingAll: "16px",
+        contents: [
+          {
+            type: "text",
+            text: "ตั้งค่าบัญชีก่อนนะคะ",
+            weight: "bold",
+            size: "xl",
+            color: "#1F2937",
+            wrap: true,
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#FFF6EC",
+            cornerRadius: "12px",
+            paddingAll: "14px",
+            spacing: "xs",
+            contents: [
+              {
+                type: "text",
+                text: "กรอกข้อมูลพื้นฐานในแอปเพื่อคำนวณเป้าหมายแคลอรี่ แล้วกลับมาส่งชื่ออาหารหรือรูปภาพได้เลย",
+                size: "sm",
+                color: "#7A3D00",
+                wrap: true,
+              },
+            ],
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        paddingAll: "14px",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "sm",
+            color: "#FFA840",
+            action: {
+              type: "uri",
+              label: "เริ่มตั้งค่า",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/onboarding`,
             },
           },
         ],
@@ -272,7 +355,7 @@ export async function POST(req: NextRequest) {
 
         if (!draft) {
           await replyToUser(pb.replyToken, [
-            { type: "text", text: "ไม่พบรายการอาหาร อาจหมดเวลาแล้ว กรุณาส่งอาหารใหม่อีกครั้งนะคะ 🙏" },
+            { type: "text", text: "ไม่พบรายการอาหาร อาจหมดเวลาแล้ว กรุณาส่งอาหารใหม่อีกครั้งนะคะ" },
           ]);
           return;
         }
@@ -307,7 +390,7 @@ export async function POST(req: NextRequest) {
       if (action === "cancel" && draftId) {
         await db.from("meal_drafts").delete().eq("id", draftId).eq("line_user_id", lineUserId);
         await replyToUser(pb.replyToken, [
-          { type: "text", text: "ยกเลิกแล้ว 👍 ส่งชื่ออาหารหรือรูปภาพมาใหม่ได้เลยนะคะ" },
+          { type: "text", text: "ยกเลิกแล้ว ส่งชื่ออาหารหรือรูปภาพมาใหม่ได้เลยนะคะ" },
         ]);
         return;
       }
@@ -324,14 +407,17 @@ export async function POST(req: NextRequest) {
     // Show typing animation immediately while we process
     await showLoadingAnimation(lineUserId, 30);
 
-    // Look up user — silently skip if not registered
+    // Look up user — guide new users to onboarding
     const db = supabaseAdmin();
     const { data: user } = await db
       .from("users")
       .select("timezone, daily_kcal_target")
       .eq("line_user_id", lineUserId)
       .single();
-    if (!user) return;
+    if (!user) {
+      await replyToUser(e.replyToken, [buildOnboardingFlex()]);
+      return;
+    }
 
     const tz = user.timezone ?? "Asia/Bangkok";
     const date = localDate(tz);
@@ -368,14 +454,14 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("[webhook] image estimate error:", err);
         await replyToUser(imgEvent.replyToken, [
-          { type: "text", text: "ขอโทษนะคะ ไม่สามารถวิเคราะห์รูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
+          { type: "text", text: "ขอโทษนะคะ ไม่สามารถวิเคราะห์รูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง" },
         ]);
         return;
       }
 
       if (!estimate.is_food) {
         await replyToUser(imgEvent.replyToken, [
-          { type: "text", text: "🤔 ไม่พบอาหารในรูปนี้\n\nกรุณาส่งรูปอาหารที่ต้องการบันทึกนะคะ 🍽️" },
+          { type: "text", text: "ไม่พบอาหารในรูปนี้\n\nกรุณาส่งรูปอาหารที่ต้องการบันทึกนะคะ" },
         ]);
         return;
       }
@@ -437,14 +523,14 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[webhook] text estimate error:", err);
       await replyToUser(textEvent.replyToken, [
-        { type: "text", text: "ขอโทษนะคะ ไม่สามารถประมาณแคลอรี่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง 🙏" },
+        { type: "text", text: "ขอโทษนะคะ ไม่สามารถประมาณแคลอรี่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง" },
       ]);
       return;
     }
 
     if (!estimate.is_food) {
       await replyToUser(textEvent.replyToken, [
-        { type: "text", text: "🤔 ไม่พบข้อมูลอาหารในข้อความนี้\n\nลองพิมพ์ชื่ออาหารที่ต้องการบันทึก หรือส่งรูปอาหารมาได้เลยนะคะ 🍽️" },
+        { type: "text", text: "ไม่พบข้อมูลอาหารในข้อความนี้\n\nลองพิมพ์ชื่ออาหารที่ต้องการบันทึก หรือส่งรูปอาหารมาได้เลยนะคะ" },
       ]);
       return;
     }

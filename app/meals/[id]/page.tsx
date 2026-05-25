@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Loader2, Save, Trash2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Trash2, Sparkles, Droplets, Dumbbell, Wheat } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -148,20 +148,16 @@ export default function MealDetailPage() {
         <>
           {/* Hero kcal */}
           <section
-            className="relative overflow-hidden rounded-3xl p-5 text-white shadow-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, #FFB85C 0%, #FF8A0D 60%, #FF6B00 100%)",
-            }}
+            className="relative overflow-hidden rounded-2xl border border-brand-100 bg-card p-5 shadow-sm"
           >
-            <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               แคลอรี่
             </p>
-            <p className="mt-1 text-4xl font-semibold leading-none">
+            <p className="mt-1 text-4xl font-semibold leading-none text-brand-600">
               {kcal.toLocaleString()}
-              <span className="ml-1 text-base font-normal text-white/80">kcal</span>
+              <span className="ml-1 text-base font-normal text-muted-foreground">kcal</span>
             </p>
-            <p className="mt-3 text-xs text-white/80">
+            <p className="mt-3 text-xs text-muted-foreground">
               {new Date(meal.eaten_at).toLocaleString("th-TH", {
                 dateStyle: "medium",
                 timeStyle: "short",
@@ -170,12 +166,12 @@ export default function MealDetailPage() {
             {(meal.edited_by_user || meal.ai_confidence != null) && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {meal.edited_by_user && (
-                  <Badge className="bg-white/20 text-white hover:bg-white/30">
+                  <Badge className="bg-brand-50 text-brand-600 hover:bg-brand-100">
                     แก้ไขแล้ว
                   </Badge>
                 )}
                 {meal.ai_confidence != null && (
-                  <Badge className="bg-white/20 text-white hover:bg-white/30">
+                  <Badge className="bg-brand-50 text-brand-600 hover:bg-brand-100">
                     <Sparkles className="mr-1 h-3 w-3" />
                     ความมั่นใจ {Math.round(meal.ai_confidence * 100)}%
                   </Badge>
@@ -231,19 +227,19 @@ export default function MealDetailPage() {
                   label="โปรตีน"
                   value={protein}
                   onChange={setProtein}
-                  tone="bg-emerald-100 text-emerald-700"
+                  icon={Dumbbell}
                 />
                 <MacroInput
                   label="คาร์บ"
                   value={carb}
                   onChange={setCarb}
-                  tone="bg-amber-100 text-amber-700"
+                  icon={Wheat}
                 />
                 <MacroInput
                   label="ไขมัน"
                   value={fat}
                   onChange={setFat}
-                  tone="bg-rose-100 text-rose-700"
+                  icon={Droplets}
                 />
               </div>
             </CardContent>
@@ -309,20 +305,19 @@ function MacroInput({
   label,
   value,
   onChange,
-  tone,
+  icon: Icon,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  tone: string;
+  icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <div className="rounded-2xl border bg-background p-3">
-      <span
-        className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${tone}`}
-      >
-        {label}
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+        <Icon className="h-4 w-4" />
       </span>
+      <span className="mt-1 inline-block text-[10px] font-medium text-muted-foreground">{label}</span>
       <div className="mt-1 flex items-baseline gap-1">
         <Input
           type="number"
