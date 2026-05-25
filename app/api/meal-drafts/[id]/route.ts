@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { localDate } from "@/lib/nutrition";
+import { pushToUser } from "@/lib/line-messaging";
+import { buildMealLoggedFlex } from "@/lib/flex-summary";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,6 +110,19 @@ export async function POST(req: Request, { params }: Params) {
 
   // Delete draft
   await db.from("meal_drafts").delete().eq("id", id);
+
+  // Push LINE flex notification (fire-and-forget; don't fail the response if it errors)
+  void pushToUser(auth.sub, [
+    buildMealLoggedFlex({
+      name: meal.name,
+      total_kcal: meal.kcal,
+      macros: {
+        protein_g: meal.protein_g ?? 0,
+        carb_g: meal.carb_g ?? 0,
+        fat_g: meal.fat_g ?? 0,
+      },
+    }),
+  ]).catch((err) => console.error(`[meal-drafts confirm] push error for draft=${id}:`, err));
 
   return NextResponse.json({ meal });
 }

@@ -1,5 +1,202 @@
 import type { LineMessage } from "./line-messaging";
 
+/** Build the "meal logged" Flex Message sent after a meal is saved. */
+export function buildMealLoggedFlex(estimate: {
+  name: string;
+  total_kcal: number;
+  macros: { protein_g: number; carb_g: number; fat_g: number };
+}): LineMessage {
+  return {
+    type: "flex",
+    altText: `บันทึกแคลอรีสำเร็จ: ${estimate.name} ${estimate.total_kcal} kcal`,
+    contents: {
+      type: "bubble",
+      size: "mega",
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        paddingAll: "16px",
+        contents: [
+          {
+            type: "box",
+            layout: "baseline",
+            backgroundColor: "#E9F9EE",
+            cornerRadius: "12px",
+            paddingAll: "10px",
+            contents: [
+              {
+                type: "text",
+                text: "✅ บันทึกแล้ว!",
+                weight: "bold",
+                color: "#1F8B4C",
+                size: "sm",
+                flex: 0,
+              },
+            ],
+          },
+          {
+            type: "text",
+            text: `🍚 ${estimate.name}`,
+            weight: "bold",
+            size: "xl",
+            color: "#1F2937",
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#FFF4E8",
+            cornerRadius: "16px",
+            paddingAll: "14px",
+            spacing: "xs",
+            contents: [
+              {
+                type: "text",
+                text: "พลังงาน",
+                size: "sm",
+                color: "#9A3412",
+              },
+              {
+                type: "text",
+                text: `${estimate.total_kcal} kcal`,
+                weight: "bold",
+                size: "4xl",
+                color: "#EA580C",
+              },
+            ],
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            backgroundColor: "#F8FAFC",
+            cornerRadius: "16px",
+            paddingAll: "12px",
+            spacing: "sm",
+            contents: [
+              {
+                type: "text",
+                text: "สารอาหารหลัก",
+                size: "sm",
+                weight: "bold",
+                color: "#475569",
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#EEF2FF",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      {
+                        type: "text",
+                        text: "🥩 โปรตีน",
+                        size: "xs",
+                        color: "#4F46E5",
+                      },
+                      {
+                        type: "text",
+                        text: `${Math.round(estimate.macros.protein_g)}g`,
+                        weight: "bold",
+                        size: "md",
+                        color: "#312E81",
+                      },
+                    ],
+                  },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#ECFEFF",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      {
+                        type: "text",
+                        text: "🍚 คาร์บ",
+                        size: "xs",
+                        color: "#0891B2",
+                      },
+                      {
+                        type: "text",
+                        text: `${Math.round(estimate.macros.carb_g)}g`,
+                        weight: "bold",
+                        size: "md",
+                        color: "#0E7490",
+                      },
+                    ],
+                  },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    backgroundColor: "#FFF7ED",
+                    cornerRadius: "12px",
+                    paddingAll: "10px",
+                    alignItems: "center",
+                    contents: [
+                      {
+                        type: "text",
+                        text: "🧈 ไขมัน",
+                        size: "xs",
+                        color: "#C2410C",
+                      },
+                      {
+                        type: "text",
+                        text: `${Math.round(estimate.macros.fat_g)}g`,
+                        weight: "bold",
+                        size: "md",
+                        color: "#9A3412",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        paddingAll: "14px",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "sm",
+            color: "#22C55E",
+            action: {
+              type: "uri",
+              label: "เพิ่มอีก",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/add`,
+            },
+          },
+          {
+            type: "button",
+            style: "secondary",
+            height: "sm",
+            action: {
+              type: "uri",
+              label: "ดูสรุปวันนี้",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/meals`,
+            },
+          },
+        ],
+      },
+      styles: {
+        body: { backgroundColor: "#FFFFFF" },
+        footer: { backgroundColor: "#FFFFFF", separator: true },
+      },
+    },
+  };
+}
+
 export type MealRecord = {
   name: string;
   kcal: number;
